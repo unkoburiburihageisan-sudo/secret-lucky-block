@@ -1,0 +1,144 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>シークレットラッキーブロック</title>
+    <style>
+        /* 背景を少しミステリアスなグラデーションに */
+        body { 
+            text-align: center; 
+            background: radial-gradient(circle, #2c3e50, #000000); 
+            color: white; 
+            font-family: 'Helvetica Neue', Arial, sans-serif;
+            margin: 0;
+            overflow: hidden;
+        }
+        .container { margin-top: 30px; }
+        
+        h1 {
+            font-size: 2.5rem;
+            text-shadow: 0 0 10px #fff, 0 0 20px #f0f;
+            letter-spacing: 5px;
+        }
+
+        #display-area { 
+            height: 450px; 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            perspective: 1000px;
+        }
+
+        /* ガチャ画像のスタイル */
+        img { 
+            max-width: 320px; 
+            cursor: pointer; 
+            transition: transform 0.2s, filter 0.3s;
+            filter: drop-shadow(0 0 15px rgba(255,255,255,0.2));
+        }
+
+        /* クリックした時の反応 */
+        img:active { transform: scale(0.9) rotate(5deg); }
+
+        .result-name { 
+            font-size: 28px; 
+            font-weight: bold; 
+            margin-top: 20px;
+            min-height: 40px;
+            color: #00d4ff;
+        }
+
+        .hint { color: #888; margin-top: 10px; font-size: 0.9rem; }
+    </style>
+</head>
+<body>
+
+    <div class="container">
+        <h1>SECRET LUCKY BLOCK</h1>
+        <p class="hint">ブロックをタップして運命を決めろ</p>
+        
+        <div id="display-area">
+            <img id="gacha-img" src="gacha.png" alt="Lucky Block" onclick="startGacha()">
+        </div>
+        
+        <div id="result-text" class="result-name">READY...</div>
+    </div>
+
+<script>
+    const gachaImg = document.getElementById('gacha-img');
+    const resultText = document.getElementById('result-text');
+    let isRolling = false;
+
+    // キャラクター設定（確率はご指定の通り）
+    const items = [
+        { name: "ペガサス", img: "pegasus.png", weight: 0.01 },
+        { name: "シークレットコンビナーション", img: "combined.png", weight: 0.5 },
+        { name: "スパゲッティトイレ", img: "toilet.png", weight: 1.0 },
+        { name: "エゾクセコラ", img: "house.png", weight: 3.0 },
+        { name: "ホットスポット", img: "skeleton.png", weight: 19.0 },
+        { name: "ドラゴンフルティーニ", img: "dragon.png", weight: 75.0 },
+        { name: "ドラゴンフルティーニ", img: "dragon.png", weight: 1.49 } // 合計100%調整用
+    ];
+
+    const allImages = items.map(i => i.img);
+
+    function startGacha() {
+        if (isRolling) return;
+        isRolling = true;
+        
+        resultText.innerText = "OPENING...";
+        resultText.style.color = "#fff";
+
+        let count = 0;
+        // 0.5秒（500ms）ごとに画像を切り替え、4回繰り返す
+        const interval = setInterval(() => {
+            const randomImg = allImages[Math.floor(Math.random() * (allImages.length - 1))];
+            gachaImg.src = randomImg;
+            
+            // 演出中の揺れ
+            gachaImg.style.transform = `scale(1.1) rotate(${Math.random() * 10 - 5}deg)`;
+            
+            count++;
+            if (count >= 4) {
+                clearInterval(interval);
+                showResult();
+            }
+        }, 500);
+    }
+
+    function showResult() {
+        const rand = Math.random() * 100;
+        let currentWeight = 0;
+        let selectedItem = items[items.length - 1];
+
+        for (const item of items) {
+            currentWeight += item.weight;
+            if (rand < currentWeight) {
+                selectedItem = item;
+                break;
+            }
+        }
+
+        // 結果の表示
+        gachaImg.src = selectedItem.img;
+        gachaImg.style.transform = "scale(1.2)";
+        resultText.innerText = `YOU GOT: ${selectedItem.name}`;
+        
+        // レア度によって色を変える
+        if(selectedItem.weight <= 0.5) resultText.style.color = "#ff00ff"; // 超レア
+        else if(selectedItem.weight <= 3.0) resultText.style.color = "#ffff00"; // レア
+        else resultText.style.color = "#00d4ff"; // 普通
+
+        // 3.5秒後に元に戻す
+        setTimeout(() => {
+            gachaImg.src = "gacha.png";
+            gachaImg.style.transform = "scale(1)";
+            resultText.innerText = "READY...";
+            resultText.style.color = "#00d4ff";
+            isRolling = false;
+        }, 3500);
+    }
+</script>
+</body>
+</html>
